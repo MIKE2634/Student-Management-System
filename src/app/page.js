@@ -18,12 +18,10 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const [students, classes, subjects, scores] = await Promise.all([
-        fetch('/api/students').then(res => res.json()),
-        fetch('/api/classes').then(res => res.json()),
-        fetch('/api/subjects').then(res => res.json()),
-        fetch('/api/scores').then(res => res.json())
-      ]);
+      const students = await fetch('/api/students').then(res => res.json());
+      const classes = await fetch('/api/classes').then(res => res.json());
+      const subjects = await fetch('/api/subjects').then(res => res.json());
+      const scores = await fetch('/api/scores').then(res => res.json());
 
       setStats({
         totalStudents: Array.isArray(students) ? students.length : 0,
@@ -60,21 +58,6 @@ export default function Dashboard() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="text-3xl font-bold text-yellow-600">{stats.totalScores}</div>
                 <div className="text-gray-600">Scores Recorded</div>
-              </div>
-            </div>
-
-            <div className="mt-8 bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <a href="/students" className="bg-blue-600 text-white text-center px-4 py-2 rounded hover:bg-blue-700">
-                  Register Student
-                </a>
-                <a href="/classes" className="bg-green-600 text-white text-center px-4 py-2 rounded hover:bg-green-700">
-                  Create Class
-                </a>
-                <a href="/scores" className="bg-purple-600 text-white text-center px-4 py-2 rounded hover:bg-purple-700">
-                  Enter Scores
-                </a>
               </div>
             </div>
           </div>

@@ -2,8 +2,8 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
-  title: 'Ikonex Academy - Student Management System',
-  description: 'Manage students, classes, subjects, and results',
+  title: 'Ikonex Academy',
+  description: 'Student Management System',
 };
 
 export default function RootLayout({ children }) {
