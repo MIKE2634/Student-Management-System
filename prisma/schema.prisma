@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ClassStream {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  code      String   @unique
+  students  Student[]
+  subjects  ClassSubject[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Student {
+  id             String   @id @default(cuid())
+  admissionNo    String   @unique
+  name           String
+  email          String?
+  phone          String?
+  address        String?
+  classStreamId  String
+  classStream    ClassStream @relation(fields: [classStreamId], references: [id])
+  scores         Score[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  code      String   @unique
+  classSubjects ClassSubject[]
+  scores    Score[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ClassSubject {
+  id            String   @id @default(cuid())
+  classStreamId String
+  subjectId     String
+  classStream   ClassStream @relation(fields: [classStreamId], references: [id])
+  subject       Subject    @relation(fields: [subjectId], references: [id])
+  createdAt     DateTime @default(now())
+  
+  @@unique([classStreamId, subjectId])
+}
+
+model Score {
+  id        String   @id @default(cuid())
+  studentId String
+  subjectId String
+  examScore Float    @default(0)
+  caScore   Float    @default(0)
+  term      String
+  year      Int
+  student   Student  @relation(fields: [studentId], references: [id])
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([studentId, subjectId, term, year])
+}
+
+model GradeScale {
+  id        String   @id @default(cuid())
+  minScore  Float
+  maxScore  Float
+  grade     String
+  points    Float
+  remark    String
+  createdAt DateTime @default(now())
+}
