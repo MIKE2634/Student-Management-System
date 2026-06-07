@@ -17,6 +17,8 @@ export default function ScoresPage() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [scores, setScores] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [loadingScores, setLoadingScores] = useState(false);
 
   useEffect(() => {
     fetchClasses();
@@ -58,17 +60,28 @@ export default function ScoresPage() {
   };
 
   const fetchStudentsByClass = async () => {
+    setLoadingStudents(true);
+    setStudents([]);
+    setSelectedStudent('');
+    
     try {
       const res = await fetch(`/api/students?classId=${selectedClass}`);
       const data = await res.json();
       setStudents(Array.isArray(data) ? data : []);
+      if (data.length === 0) {
+        toast.error('No students found in this class');
+      }
     } catch (error) {
       console.error('Error fetching students:', error);
       setStudents([]);
+      toast.error('Failed to load students');
+    } finally {
+      setLoadingStudents(false);
     }
   };
 
   const fetchScores = async () => {
+    setLoadingScores(true);
     try {
       const res = await fetch(`/api/scores?studentId=${selectedStudent}`);
       const data = await res.json();
@@ -76,7 +89,25 @@ export default function ScoresPage() {
     } catch (error) {
       console.error('Error fetching scores:', error);
       setScores([]);
+    } finally {
+      setLoadingScores(false);
     }
+  };
+
+  // Kenya Grade Calculation Function
+  const getKenyaGrade = (totalScore) => {
+    if (totalScore >= 80) return { grade: 'A', points: 12, remark: 'Excellent' };
+    if (totalScore >= 75) return { grade: 'A-', points: 11, remark: 'Very Good' };
+    if (totalScore >= 70) return { grade: 'B+', points: 10, remark: 'Good' };
+    if (totalScore >= 65) return { grade: 'B', points: 9, remark: 'Above Average' };
+    if (totalScore >= 60) return { grade: 'B-', points: 8, remark: 'Average' };
+    if (totalScore >= 55) return { grade: 'C+', points: 7, remark: 'Satisfactory' };
+    if (totalScore >= 50) return { grade: 'C', points: 6, remark: 'Acceptable' };
+    if (totalScore >= 45) return { grade: 'C-', points: 5, remark: 'Below Average' };
+    if (totalScore >= 40) return { grade: 'D+', points: 4, remark: 'Poor' };
+    if (totalScore >= 35) return { grade: 'D', points: 3, remark: 'Very Poor' };
+    if (totalScore >= 30) return { grade: 'D-', points: 2, remark: 'Weak' };
+    return { grade: 'E', points: 1, remark: 'Fail' };
   };
 
   const handleSubmit = async (e) => {
@@ -90,6 +121,9 @@ export default function ScoresPage() {
     setLoading(true);
     
     try {
+      const totalScore = parseFloat(examScore) + parseFloat(caScore);
+      const kenyaGrade = getKenyaGrade(totalScore);
+      
       const scoreData = {
         studentId: selectedStudent,
         subjectId: selectedSubject,
@@ -106,7 +140,7 @@ export default function ScoresPage() {
       });
 
       if (res.ok) {
-        toast.success('Scores saved successfully');
+        toast.success(`Scores saved! Grade: ${kenyaGrade.grade} (${kenyaGrade.remark})`);
         setExamScore('');
         setCaScore('');
         fetchScores();
@@ -119,6 +153,13 @@ export default function ScoresPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Calculate grade for display
+  const getDisplayGrade = (exam, ca) => {
+    const total = (exam || 0) + (ca || 0);
+    const grade = getKenyaGrade(total);
+    return grade.grade;
   };
 
   return (
@@ -155,12 +196,19 @@ export default function ScoresPage() {
                     value={selectedStudent}
                     onChange={(e) => setSelectedStudent(e.target.value)}
                     required
+                    disabled={loadingStudents}
                   >
                     <option value="">Select Student</option>
                     {students.map(s => (
                       <option key={s.id} value={s.id}>{s.name} ({s.admissionNo})</option>
                     ))}
                   </select>
+                  {loadingStudents && (
+                    <div className="text-sm text-blue-600 mt-2">⏳ Loading students...</div>
+                  )}
+                  {!loadingStudents && students.length === 0 && selectedClass && (
+                    <div className="text-sm text-yellow-600 mt-2">⚠️ No students in this class. Register students first.</div>
+                  )}
                 </div>
 
                 <div className="mb-4">
@@ -234,7 +282,7 @@ export default function ScoresPage() {
                   disabled={loading}
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50"
                 >
-                  {loading ? 'Saving...' : '💾 Save Scores'}
+                  {loading ? '💾 Saving...' : '💾 Save Scores'}
                 </button>
               </form>
             </div>
@@ -244,35 +292,76 @@ export default function ScoresPage() {
               <h2 className="text-xl font-bold text-gray-800 mb-4">Student Scores</h2>
               {selectedStudent ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Subject</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Exam</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">CA</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Total</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Term</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {scores.map((score) => (
-                        <tr key={score.id} className="border-b">
-                          <td className="px-4 py-3 text-sm text-gray-800">{score.subject?.name || 'N/A'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-800">{score.examScore}</td>
-                          <td className="px-4 py-3 text-sm text-gray-800">{score.caScore}</td>
-                          <td className="px-4 py-3 text-sm font-bold text-blue-600">{score.examScore + score.caScore}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{score.term} {score.year}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {scores.length === 0 && (
-                    <p className="text-center text-gray-500 py-8">No scores recorded yet</p>
+                  {loadingScores ? (
+                    <div className="text-center py-8">
+                      <div className="text-blue-600">⏳ Loading scores...</div>
+                    </div>
+                  ) : (
+                    <>
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Subject</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Exam</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">CA</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Total</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Grade</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Term</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {scores.map((score) => (
+                            <tr key={score.id} className="border-b">
+                              <td className="px-4 py-3 text-sm text-gray-800">{score.subject?.name || 'N/A'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-800">{score.examScore}</td>
+                              <td className="px-4 py-3 text-sm text-gray-800">{score.caScore}</td>
+                              <td className="px-4 py-3 text-sm font-bold text-blue-600">
+                                {score.examScore + score.caScore}
+                              </td>
+                              <td className="px-4 py-3 text-sm font-bold">
+                                <span className={`px-2 py-1 rounded ${
+                                  getDisplayGrade(score.examScore, score.caScore) === 'A' ? 'bg-green-100 text-green-800' :
+                                  getDisplayGrade(score.examScore, score.caScore) === 'A-' ? 'bg-green-50 text-green-700' :
+                                  getDisplayGrade(score.examScore, score.caScore) === 'B+' ? 'bg-blue-100 text-blue-800' :
+                                  getDisplayGrade(score.examScore, score.caScore) === 'B' ? 'bg-blue-50 text-blue-700' :
+                                  'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {getDisplayGrade(score.examScore, score.caScore)}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600">{score.term} {score.year}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {scores.length === 0 && (
+                        <p className="text-center text-gray-500 py-8">No scores recorded yet</p>
+                      )}
+                    </>
                   )}
                 </div>
               ) : (
                 <p className="text-center text-gray-500 py-8">Select a student to view scores</p>
               )}
+            </div>
+          </div>
+
+          {/* Kenya Grading Scale Reference */}
+          <div className="mt-8 bg-white rounded-2xl shadow-xl p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">Kenya Grading Scale Reference</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-green-100 p-3 rounded-lg text-center"><span className="font-bold text-green-800">A</span><br/><span className="text-sm">80-100%</span></div>
+              <div className="bg-green-50 p-3 rounded-lg text-center"><span className="font-bold text-green-700">A-</span><br/><span className="text-sm">75-79%</span></div>
+              <div className="bg-blue-100 p-3 rounded-lg text-center"><span className="font-bold text-blue-800">B+</span><br/><span className="text-sm">70-74%</span></div>
+              <div className="bg-blue-50 p-3 rounded-lg text-center"><span className="font-bold text-blue-700">B</span><br/><span className="text-sm">65-69%</span></div>
+              <div className="bg-blue-50 p-3 rounded-lg text-center"><span className="font-bold text-blue-600">B-</span><br/><span className="text-sm">60-64%</span></div>
+              <div className="bg-yellow-100 p-3 rounded-lg text-center"><span className="font-bold text-yellow-800">C+</span><br/><span className="text-sm">55-59%</span></div>
+              <div className="bg-yellow-50 p-3 rounded-lg text-center"><span className="font-bold text-yellow-700">C</span><br/><span className="text-sm">50-54%</span></div>
+              <div className="bg-yellow-50 p-3 rounded-lg text-center"><span className="font-bold text-yellow-600">C-</span><br/><span className="text-sm">45-49%</span></div>
+              <div className="bg-orange-100 p-3 rounded-lg text-center"><span className="font-bold text-orange-800">D+</span><br/><span className="text-sm">40-44%</span></div>
+              <div className="bg-orange-50 p-3 rounded-lg text-center"><span className="font-bold text-orange-700">D</span><br/><span className="text-sm">35-39%</span></div>
+              <div className="bg-orange-50 p-3 rounded-lg text-center"><span className="font-bold text-orange-600">D-</span><br/><span className="text-sm">30-34%</span></div>
+              <div className="bg-red-100 p-3 rounded-lg text-center"><span className="font-bold text-red-800">E</span><br/><span className="text-sm">0-29%</span></div>
             </div>
           </div>
         </div>
