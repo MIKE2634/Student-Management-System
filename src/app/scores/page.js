@@ -93,7 +93,7 @@ export default function ScoresPage() {
     }
   };
 
-  // Kenya Grade Calculation Function (based on total score)
+  // Kenya Grade Calculation Function
   const getKenyaGrade = (score) => {
     if (score >= 80) return { grade: 'A', points: 12, remark: 'Excellent', color: 'bg-green-100 text-green-800' };
     if (score >= 75) return { grade: 'A-', points: 11, remark: 'Very Good', color: 'bg-green-50 text-green-700' };
@@ -132,7 +132,7 @@ export default function ScoresPage() {
         studentId: selectedStudent,
         subjectId: selectedSubject,
         examScore: totalScore,
-        caScore: 0, // Set to 0 since we're not using it
+        caScore: 0,
         term,
         year: parseInt(year)
       };
@@ -200,7 +200,7 @@ export default function ScoresPage() {
                     ))}
                   </select>
                   {loadingStudents && (
-                    <div className="text-sm text-blue-600 mt-2">⏳ Loading students...</div>
+                    <div className="text-sm text-blue-600 mt-2">Loading students...</div>
                   )}
                 </div>
 
@@ -263,7 +263,7 @@ export default function ScoresPage() {
                   disabled={loading}
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50"
                 >
-                  {loading ? '💾 Saving...' : '💾 Save Score'}
+                  {loading ? 'Saving...' : 'Save Score'}
                 </button>
               </form>
             </div>
@@ -275,41 +275,42 @@ export default function ScoresPage() {
                 <div className="overflow-x-auto">
                   {loadingScores ? (
                     <div className="text-center py-8">
-                      <div className="text-blue-600">⏳ Loading scores...</div>
+                      <div className="text-blue-600">Loading scores...</div>
                     </div>
                   ) : (
                     <>
-                      <table className="w-full">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Subject</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Score</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Grade</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Remark</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Term</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {scores.map((score) => {
-                            const gradeInfo = getKenyaGrade(score.examScore);
-                            return (
-                              <tr key={score.id} className="border-b">
-                                <td className="px-4 py-3 text-sm text-gray-800">{score.subject?.name || 'N/A'}</td>
-                                <td className="px-4 py-3 text-sm font-bold text-blue-600">{score.examScore}%</td>
-                                <td className="px-4 py-3 text-sm">
-                                  <span className={`px-2 py-1 rounded font-bold ${gradeInfo.color}`}>
-                                    {gradeInfo.grade}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">{gradeInfo.remark}</td>
-                                <td className="px-4 py-3 text-sm text-gray-600">{score.term} {score.year}</td>
-                              </td>
-                            );
-                          })}
-                        </tbody>
-                       </table>
-                      {scores.length === 0 && (
+                      {scores.length === 0 ? (
                         <p className="text-center text-gray-500 py-8">No scores recorded yet</p>
+                      ) : (
+                        <table className="w-full">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Subject</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Score</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Grade</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Remark</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Term</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {scores.map((score) => {
+                              const gradeInfo = getKenyaGrade(score.examScore);
+                              return (
+                                <tr key={score.id} className="border-b">
+                                  <td className="px-4 py-3 text-sm text-gray-800">{score.subject?.name || 'N/A'}</td>
+                                  <td className="px-4 py-3 text-sm font-bold text-blue-600">{score.examScore}%</td>
+                                  <td className="px-4 py-3 text-sm">
+                                    <span className={`px-2 py-1 rounded font-bold ${gradeInfo.color}`}>
+                                      {gradeInfo.grade}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-600">{gradeInfo.remark}</td>
+                                  <td className="px-4 py-3 text-sm text-gray-600">{score.term} {score.year}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
                       )}
                     </>
                   )}
@@ -322,16 +323,16 @@ export default function ScoresPage() {
 
           {/* Kenya Grading Scale Reference */}
           <div className="mt-8 bg-white rounded-2xl shadow-xl p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Kenya Grading Scale</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-4">Kenya Grading Scale</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-green-100 p-3 rounded-lg text-center"><span className="font-bold text-green-800">A</span><br/><span className="text-sm">80-100%</span><br/><span className="text-xs">Excellent</span></div>
-              <div className="bg-green-50 p-3 rounded-lg text-center"><span className="font-bold text-green-700">A-</span><br/><span className="text-sm">75-79%</span><br/><span className="text-xs">Very Good</span></div>
-              <div className="bg-blue-100 p-3 rounded-lg text-center"><span className="font-bold text-blue-800">B+</span><br/><span className="text-sm">70-74%</span><br/><span className="text-xs">Good</span></div>
-              <div className="bg-blue-50 p-3 rounded-lg text-center"><span className="font-bold text-blue-700">B</span><br/><span className="text-sm">65-69%</span><br/><span className="text-xs">Above Avg</span></div>
-              <div className="bg-yellow-100 p-3 rounded-lg text-center"><span className="font-bold text-yellow-800">C+</span><br/><span className="text-sm">55-59%</span><br/><span className="text-xs">Satisfactory</span></div>
-              <div className="bg-yellow-50 p-3 rounded-lg text-center"><span className="font-bold text-yellow-700">C</span><br/><span className="text-sm">50-54%</span><br/><span className="text-xs">Acceptable</span></div>
-              <div className="bg-orange-100 p-3 rounded-lg text-center"><span className="font-bold text-orange-800">D+</span><br/><span className="text-sm">40-44%</span><br/><span className="text-xs">Poor</span></div>
-              <div className="bg-red-100 p-3 rounded-lg text-center"><span className="font-bold text-red-800">E</span><br/><span className="text-sm">0-29%</span><br/><span className="text-xs">Fail</span></div>
+              <div className="bg-green-100 p-3 rounded-lg text-center"><span className="font-bold text-green-800">A</span><br /><span className="text-sm">80-100%</span><br /><span className="text-xs">Excellent</span></div>
+              <div className="bg-green-50 p-3 rounded-lg text-center"><span className="font-bold text-green-700">A-</span><br /><span className="text-sm">75-79%</span><br /><span className="text-xs">Very Good</span></div>
+              <div className="bg-blue-100 p-3 rounded-lg text-center"><span className="font-bold text-blue-800">B+</span><br /><span className="text-sm">70-74%</span><br /><span className="text-xs">Good</span></div>
+              <div className="bg-blue-50 p-3 rounded-lg text-center"><span className="font-bold text-blue-700">B</span><br /><span className="text-sm">65-69%</span><br /><span className="text-xs">Above Avg</span></div>
+              <div className="bg-yellow-100 p-3 rounded-lg text-center"><span className="font-bold text-yellow-800">C+</span><br /><span className="text-sm">55-59%</span><br /><span className="text-xs">Satisfactory</span></div>
+              <div className="bg-yellow-50 p-3 rounded-lg text-center"><span className="font-bold text-yellow-700">C</span><br /><span className="text-sm">50-54%</span><br /><span className="text-xs">Acceptable</span></div>
+              <div className="bg-orange-100 p-3 rounded-lg text-center"><span className="font-bold text-orange-800">D+</span><br /><span className="text-sm">40-44%</span><br /><span className="text-xs">Poor</span></div>
+              <div className="bg-red-100 p-3 rounded-lg text-center"><span className="font-bold text-red-800">E</span><br /><span className="text-sm">0-29%</span><br /><span className="text-xs">Fail</span></div>
             </div>
           </div>
         </div>
