@@ -4,9 +4,10 @@ import prisma from '../../../../lib/prisma';
 export async function GET() {
   try {
     const subjects = await prisma.subject.findMany();
-    return NextResponse.json(subjects);
+    return NextResponse.json(subjects || []);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
+    console.error('Subjects API error:', error);
+    return NextResponse.json([], { status: 200 });
   }
 }
 
@@ -18,6 +19,7 @@ export async function POST(request) {
     });
     return NextResponse.json(subject, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create' }, { status: 500 });
+    console.error('Create subject error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

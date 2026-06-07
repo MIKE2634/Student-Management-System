@@ -6,9 +6,10 @@ export async function GET() {
     const classes = await prisma.classStream.findMany({
       include: { students: true }
     });
-    return NextResponse.json(classes);
+    return NextResponse.json(classes || []);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
+    console.error('Classes API error:', error);
+    return NextResponse.json([], { status: 200 });
   }
 }
 
@@ -20,17 +21,7 @@ export async function POST(request) {
     });
     return NextResponse.json(newClass, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create' }, { status: 500 });
-  }
-}
-
-export async function DELETE(request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    await prisma.classStream.delete({ where: { id } });
-    return NextResponse.json({ message: 'Deleted' });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
+    console.error('Create class error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
