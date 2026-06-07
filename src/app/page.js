@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Navigation from '../components/Navigation';
-import { Users, GraduationCap, BookOpen, FileText, PlusCircle, TrendingUp, Award } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -37,10 +36,10 @@ export default function Dashboard() {
   };
 
   const statCards = [
-    { title: 'Total Students', value: stats.students, icon: Users, color: 'from-blue-500 to-blue-600', borderColor: 'blue-500', bgGradient: 'from-blue-50 to-blue-100' },
-    { title: 'Class Streams', value: stats.classes, icon: GraduationCap, color: 'from-green-500 to-green-600', borderColor: 'green-500', bgGradient: 'from-green-50 to-green-100' },
-    { title: 'Subjects', value: stats.subjects, icon: BookOpen, color: 'from-purple-500 to-purple-600', borderColor: 'purple-500', bgGradient: 'from-purple-50 to-purple-100' },
-    { title: 'Scores Recorded', value: stats.scores, icon: FileText, color: 'from-yellow-500 to-yellow-600', borderColor: 'yellow-500', bgGradient: 'from-yellow-50 to-yellow-100' },
+    { title: 'Total Students', value: stats.students, icon: '👨‍🎓', color: 'from-blue-500 to-blue-600', textColor: 'text-blue-600' },
+    { title: 'Class Streams', value: stats.classes, icon: '🏫', color: 'from-green-500 to-green-600', textColor: 'text-green-600' },
+    { title: 'Subjects', value: stats.subjects, icon: '📚', color: 'from-purple-500 to-purple-600', textColor: 'text-purple-600' },
+    { title: 'Scores Recorded', value: stats.scores, icon: '📝', color: 'from-yellow-500 to-yellow-600', textColor: 'text-yellow-600' },
   ];
 
   return (
@@ -55,33 +54,30 @@ export default function Dashboard() {
                 <h1 className="text-3xl font-bold mb-2">Welcome Back! 👋</h1>
                 <p className="text-blue-100">Manage your students, classes, and results all in one place</p>
               </div>
-              <Award className="h-16 w-16 text-white/20" />
+              <div className="text-6xl opacity-20">🎓</div>
             </div>
           </div>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {statCards.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <div key={index} className={`bg-gradient-to-br ${stat.bgGradient} rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 p-6 border-b-4 border-${stat.borderColor}`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`bg-gradient-to-r ${stat.color} p-3 rounded-xl`}>
-                      <Icon className="h-6 w-6 text-white" />
-                    </div>
-                    <TrendingUp className="h-5 w-5 text-gray-400" />
+            {statCards.map((stat, index) => (
+              <div key={index} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 p-6 border-b-4 border-blue-500">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`bg-gradient-to-r ${stat.color} p-3 rounded-xl text-white text-2xl`}>
+                    {stat.icon}
                   </div>
-                  <h3 className="text-gray-600 text-sm font-medium mb-1">{stat.title}</h3>
-                  <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
+                  <div className="text-3xl">📈</div>
                 </div>
-              );
-            })}
+                <h3 className="text-gray-600 text-sm font-medium mb-1">{stat.title}</h3>
+                <p className={`text-3xl font-bold ${stat.textColor}`}>{stat.value}</p>
+              </div>
+            ))}
           </div>
 
           {/* Quick Actions */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <PlusCircle className="h-6 w-6 text-blue-600" />
+              <span className="text-2xl">⚡</span>
               Quick Actions
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

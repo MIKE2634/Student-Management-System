@@ -22,11 +22,11 @@ export default function Navigation() {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <span className="text-2xl mr-2">🏫</span>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 Ikonex Academy
               </h1>
             </div>
-            <div className="hidden md:ml-8 md:flex md:space-x-6">
+            <div className="hidden md:ml-8 md:flex md:space-x-4">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
@@ -34,7 +34,7 @@ export default function Navigation() {
                   className="text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 font-medium"
                 >
                   <span>{item.icon}</span>
-                  {item.name}
+                  <span>{item.name}</span>
                 </Link>
               ))}
             </div>
