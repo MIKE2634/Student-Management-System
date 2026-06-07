@@ -1,5 +1,4 @@
 import './globals.css';
-import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
   title: 'Ikonex Academy',
@@ -9,9 +8,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body className="bg-gray-100">
         {children}
-        <Toaster position="top-right" />
       </body>
     </html>
   );
