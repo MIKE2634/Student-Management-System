@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 export default function Navigation() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   
   const navItems = [
@@ -14,6 +16,14 @@ export default function Navigation() {
     { name: 'Scores', href: '/scores', icon: '✏️' },
     { name: 'Results', href: '/results', icon: '📊' },
   ];
+
+  // Function to check if link is active
+  const isActive = (href) => {
+    if (href === '/') {
+      return pathname === href;
+    }
+    return pathname.startsWith(href);
+  };
 
   return (
     <nav className="bg-gradient-to-r from-blue-800 to-purple-800 shadow-lg">
@@ -26,17 +36,29 @@ export default function Navigation() {
                 Ikonex Academy
               </h1>
             </div>
-            <div className="hidden md:ml-8 md:flex md:space-x-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 font-medium"
-                >
-                  <span>{item.icon}</span>
-                  <span>{item.name}</span>
-                </Link>
-              ))}
+            <div className="hidden md:ml-8 md:flex md:space-x-2">
+              {navItems.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`
+                      flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 font-medium
+                      ${active 
+                        ? 'bg-white/20 text-white shadow-md' 
+                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                      }
+                    `}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.name}</span>
+                    {active && (
+                      <span className="ml-1 text-xs">●</span>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           </div>
           
@@ -44,7 +66,7 @@ export default function Navigation() {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-white hover:bg-white/10 p-2 rounded-lg"
+              className="text-white hover:bg-white/10 p-2 rounded-lg transition-all"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -58,17 +80,29 @@ export default function Navigation() {
       {isOpen && (
         <div className="md:hidden bg-gradient-to-r from-blue-900 to-purple-900">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-white hover:bg-white/10 block px-3 py-2 rounded-lg text-base font-medium"
-                onClick={() => setIsOpen(false)}
-              >
-                <span className="mr-2">{item.icon}</span>
-                {item.name}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`
+                    flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium transition-all
+                    ${active 
+                      ? 'bg-white/20 text-white' 
+                      : 'text-white/80 hover:bg-white/10 hover:text-white'
+                    }
+                  `}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span>{item.icon}</span>
+                  {item.name}
+                  {active && (
+                    <span className="ml-auto text-xs">●</span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}
