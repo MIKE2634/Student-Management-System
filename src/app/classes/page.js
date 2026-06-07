@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navigation from '@/components/Navigation';
+import Navigation from '../../components/Navigation';
 import toast from 'react-hot-toast';
 
 export default function ClassesPage() {
@@ -59,13 +59,11 @@ export default function ClassesPage() {
 
           <div className="bg-white rounded-lg shadow">
             {classes.map(c => (
-              <div key={c.id} className="p-4 border-b flex justify-between items-center">
-                <div>
-                  <div className="font-semibold">{c.name}</div>
-                  <div className="text-sm text-gray-600">Code: {c.code}</div>
-                  <div className="text-sm text-gray-600">Students: {c.students?.length || 0}</div>
-                </div>
-                <button onClick={() => handleDelete(c.id)} className="text-red-600">Delete</button>
+              <div key={c.id} className="p-4 border-b">
+                <div className="font-semibold">{c.name}</div>
+                <div className="text-sm text-gray-600">Code: {c.code}</div>
+                <div className="text-sm text-gray-600">Students: {c.students?.length || 0}</div>
+                <button onClick={() => handleDelete(c.id)} className="text-red-600 text-sm mt-1">Delete</button>
               </div>
             ))}
             {classes.length === 0 && (

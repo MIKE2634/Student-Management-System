@@ -1,84 +1,122 @@
-import { NextResponse } from 'next/server';
-import prisma from '../../../../lib/prisma';
+'use client';
 
-export async function GET(request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const classId = searchParams.get('classId');
-    const term = searchParams.get('term');
-    const year = searchParams.get('year');
+import { useState, useEffect } from 'react';
+import Navigation from '../../components/Navigation';
+import toast from 'react-hot-toast';
 
-    if (!classId || !term || !year) {
-      return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+export default function ResultsPage() {
+  const [classes, setClasses] = useState([]);
+  const [selectedClass, setSelectedClass] = useState('');
+  const [term, setTerm] = useState('Term 1');
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  const fetchClasses = async () => {
+    const res = await fetch('/api/classes');
+    const data = await res.json();
+    setClasses(data);
+  };
+
+  const fetchResults = async () => {
+    if (!selectedClass) {
+      toast.error('Please select a class');
+      return;
     }
 
-    // Get all students in the class
-    const students = await prisma.student.findMany({
-      where: { classStreamId: classId },
-      include: {
-        scores: {
-          where: { term, year: parseInt(year) },
-          include: { subject: true }
-        }
-      }
-    });
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/results?classId=${selectedClass}&term=${term}&year=${year}`);
+      const data = await res.json();
+      setResults(data);
+    } catch (error) {
+      toast.error('Failed to fetch results');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Get grade scales
-    const gradeScales = await prisma.gradeScale.findMany();
+  return (
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gray-100 p-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl font-bold mb-6">Class Results</h1>
 
-    // Process results for each student
-    const results = students.map(student => {
-      let totalMarks = 0;
-      const subjectResults = [];
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <select
+                className="p-2 border rounded"
+                value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
+              >
+                <option value="">Select Class</option>
+                {classes.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
 
-      for (const score of student.scores) {
-        const totalScore = (score.examScore || 0) + (score.caScore || 0);
-        totalMarks += totalScore;
-        
-        const grade = gradeScales.find(g => 
-          totalScore >= g.minScore && totalScore <= g.maxScore
-        );
+              <select
+                className="p-2 border rounded"
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+              >
+                <option>Term 1</option>
+                <option>Term 2</option>
+                <option>Term 3</option>
+              </select>
 
-        subjectResults.push({
-          subjectId: score.subjectId,
-          subjectName: score.subject.name,
-          examScore: score.examScore,
-          caScore: score.caScore,
-          total: totalScore,
-          grade: grade?.grade || 'N/A',
-          points: grade?.points || 0
-        });
-      }
+              <input
+                type="number"
+                className="p-2 border rounded"
+                value={year}
+                onChange={(e) => setYear(parseInt(e.target.value))}
+              />
+            </div>
 
-      const averageScore = student.scores.length > 0 ? totalMarks / student.scores.length : 0;
-      const overallGrade = gradeScales.find(g => 
-        averageScore >= g.minScore && averageScore <= g.maxScore
-      );
+            <button
+              onClick={fetchResults}
+              disabled={loading}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              {loading ? 'Loading...' : 'Generate Results'}
+            </button>
+          </div>
 
-      return {
-        studentId: student.id,
-        studentName: student.name,
-        admissionNo: student.admissionNo,
-        totalMarks,
-        averageScore,
-        overallGrade: overallGrade?.grade || 'N/A',
-        totalPoints: subjectResults.reduce((sum, s) => sum + s.points, 0),
-        subjects: subjectResults
-      };
-    });
-
-    // Sort by total marks for ranking
-    results.sort((a, b) => b.totalMarks - a.totalMarks);
-    
-    // Add ranks
-    const rankedResults = results.map((result, index) => ({
-      ...result,
-      position: index + 1
-    }));
-
-    return NextResponse.json(rankedResults);
-  } catch (error) {
-    console.error('Results error:', error);
-    return NextResponse.json({ error: 'Failed to process results' }, { status: 500 });
-  }
+          {results.length > 0 && (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Admission No</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Marks</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Average</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {results.map((result) => (
+                    <tr key={result.studentId}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{result.position}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{result.admissionNo}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{result.studentName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{result.totalMarks}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{result.averageScore.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">{result.overallGrade}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
 }
